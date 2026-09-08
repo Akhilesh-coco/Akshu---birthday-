@@ -171,81 +171,25 @@ document.getElementById("passInput").addEventListener("keydown",function(e){
   if(e.key==="Enter") unlock();
 });
 
-const symbols=["♡","♥","✦","♡","💗"];
+const symbols=["💗","🤍","✨","💗","💗"];
 const box=document.getElementById("particles");
 for(let i=0;i<18;i++){
   const s=document.createElement("span"); s.className="p"; s.textContent=symbols[i%symbols.length];
   s.style.left=(Math.random()*100)+"%"; s.style.animationDuration=(5+Math.random()*6)+"s";
   s.style.animationDelay=(-Math.random()*8)+"s"; s.style.fontSize=(13+Math.random()*14)+"px"; box.appendChild(s);
 }
-function openLetter(){document.getElementById("stage").classList.add("open"); startMusic();}
-function closeLetter(){document.getElementById("stage").classList.remove("open");}
-let audio=null, playing=false, savedSongName="";
-const songFile=document.getElementById("songFile");
+let audio = new Audio("birthday.mpeg");audio.loop = true;audio.volume = 0.35;let playing = false;
 const musicBtn=document.getElementById("musicBtn");
 
-function openDB(){
-  return new Promise((resolve,reject)=>{
-    const req=indexedDB.open("AkshuBirthdayDB",1);
-    req.onupgradeneeded=()=>req.result.createObjectStore("songs");
-    req.onsuccess=()=>resolve(req.result);
-    req.onerror=()=>reject(req.error);
-  });
-}
-async function saveSong(file){
-  try{
-    const db=await openDB();
-    const tx=db.transaction("songs","readwrite");
-    tx.objectStore("songs").put({blob:file,name:file.name},"selected");
-    savedSongName=file.name;
-  }catch(e){}
-}
-async function loadSavedSong(){
-  try{
-    const db=await openDB();
-    const tx=db.transaction("songs","readonly");
-    const req=tx.objectStore("songs").get("selected");
-    req.onsuccess=()=>{
-      if(req.result){
-        savedSongName=req.result.name;
-        audio=new Audio(URL.createObjectURL(req.result.blob));
-        audio.loop=true;
-        audio.volume=.35;
-      }
-    };
-  }catch(e){}
-}
-songFile.addEventListener("change", async ()=>{
-  const file=songFile.files[0];
-  if(!file)return;
-  await saveSong(file);
-  if(audio){audio.pause();URL.revokeObjectURL(audio.src);}
-  audio=new Audio(URL.createObjectURL(file));
-  audio.loop=true;
-  audio.volume=.35;
-  document.getElementById("musicBtn").textContent="▶";
-  // The browser requires a user gesture; this change event qualifies in most browsers.
-  audio.play().then(()=>{
-    playing=true;
-    musicBtn.textContent="❚❚";
-  }).catch(()=>{
-    playing=false;
-    musicBtn.textContent="▶";
-  });
-});
 async function startMusic(){
-  if(!audio) await loadSavedSong();
-  if(audio){
-    try{
-      await audio.play();
+  try{
+    await audio.play();
       playing=true;
       musicBtn.textContent="❚❚";
     }catch(e){
+    playing=false;
       musicBtn.textContent="▶";
     }
-  }else{
-    musicBtn.textContent="♫";
-  }
 }
 async function openLetter(){
   document.getElementById("stage").classList.add("open");
@@ -255,8 +199,6 @@ function closeLetter(){
   document.getElementById("stage").classList.remove("open");
 }
 async function toggleMusic(){
-  if(!audio) await loadSavedSong();
-  if(!audio) return;
   if(playing){
     audio.pause();
     playing=false;
@@ -269,6 +211,6 @@ async function toggleMusic(){
     }catch(e){}
   }
 }
-loadSavedSong();</script>
+</script>
 </body>
 </html>
